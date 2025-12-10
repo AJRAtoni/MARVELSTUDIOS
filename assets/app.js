@@ -3,9 +3,9 @@ const CONFIG = {
     AIRTABLE: {
         TOKEN: 'patv41n63HLpkM4VN.' + 'bbe008721d08d1e969c3398df4550c53a1704b64ed752cc16ae8060a0bd373b3',
         BASE_ID: 'apphXPfmF1OwvCPWC',
-        TABLE_NAME: 'marveldc',
-        FILTER_FIELD: 'Franquicia', // Campo para distinguir (Marvel/DC)
-        FILTER_VALUE: 'Marvel'      // Valor a filtrar para ESTA web
+        TABLE_NAME: 'eventos',
+        FILTER_FIELD: 'Franquicia',
+        FILTER_VALUE: 'Marvel'
     }
 };
 
@@ -75,32 +75,6 @@ async function fetchMovies() {
         DOM.container.innerHTML = `<p style="text-align:center; color: red;">Error cargando contenido: ${error.message}</p>`;
         return [];
     }
-}
-
-/**
- * Render mock data if no API key is present
- */
-function getMockData() {
-    return [
-        {
-            fields: {
-                Titulo: "FANTASTIC FOUR (MOCK)",
-                Tipo: "PELICULA",
-                FechaEstrenoTexto: "25 JULIO 2025",
-                Imagen: [{ url: "assets/images/image19.jpg" }],
-                IMDbURL: "https://www.imdb.com/title/tt10676052/"
-            }
-        },
-        {
-            fields: {
-                Titulo: "IRONHEART (MOCK)",
-                Tipo: "SERIE",
-                FechaEstrenoTexto: "3 SEPTIEMBRE 2025",
-                Imagen: [{ url: "assets/images/image24.jpg" }],
-                IMDbURL: "https://www.imdb.com/title/tt13623126/"
-            }
-        }
-    ];
 }
 
 /**
