@@ -282,6 +282,11 @@ function injectStyles() {
         #dynamic-content .container.style2.columns > .wrapper > .inner > div {
             width: calc(50% + (var(--gutters) / 2));
         }
+
+        /* Uppercase Titles */
+        h2.style1 {
+            text-transform: uppercase !important;
+        }
         
         /* Reset for Mobile */
         @media (max-width: 736px) {
