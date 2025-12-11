@@ -334,7 +334,7 @@ unloaded-script {
 	--padding-horizontal: 4rem;
 	--padding-vertical: 4rem;
 	--spacing: 1.75rem;
-	--width: 70rem;
+	--width: 60rem;
 	border-radius: var(--border-radius-tl) var(--border-radius-tr) var(--border-radius-br) var(--border-radius-bl);
 	max-width: 100%;
 	position: relative;
@@ -987,8 +987,9 @@ hr.style1:before {
 }
 
 .image.style2 .frame {
-	width: 100vw;
-	height: 20rem;
+	width: 100%;
+	height: auto;
+	aspect-ratio: 2 / 3;
 	border-radius: 1rem;
 	box-shadow: 0rem 0rem 0rem 0rem #FFFFFF;
 	transition: none;
@@ -1138,7 +1139,7 @@ p.style1 {
 	color: #FFFFFF;
 	font-family: 'Poppins', sans-serif;
 	font-size: 2.5em;
-	line-height: 1.375;
+	line-height: 1;
 	font-weight: 700;
 	background-image: linear-gradient(300deg, #FFFFFF 0%, #FFFFFF 85%);
 	-webkit-background-clip: text;
@@ -1915,8 +1916,9 @@ p.style4 span.p:nth-child(n + 2) {
 	}
 
 	.image.style2 .frame {
-		width: 100vw;
-		height: 18.75rem !important;
+		width: 100%;
+		height: auto !important;
+		aspect-ratio: 2 / 3;
 	}
 
 	.image.style2 img {
@@ -2041,7 +2043,8 @@ p.style4 span.p:nth-child(n + 2) {
 
 
 	.image.style2 .frame {
-		height: 15rem !important;
+		height: auto !important;
+		aspect-ratio: 2 / 3;
 	}
 
 	.image.style3 .frame {
@@ -2075,7 +2078,8 @@ p.style4 span.p:nth-child(n + 2) {
 	}
 
 	.image.style2 .frame {
-		height: 13.125rem !important;
+		height: auto !important;
+		aspect-ratio: 2 / 3;
 	}
 
 	.image.style3 .frame {
