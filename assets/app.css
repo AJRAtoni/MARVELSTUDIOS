@@ -1,0 +1,28 @@
+/* Dynamic content layout */
+#dynamic-content .container.style2.columns > .wrapper > .inner > div {
+    width: calc(50% + (var(--gutters) / 2));
+}
+
+/* Fade-in animation for cards */
+.fade-element {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 1s ease, transform 1s ease;
+}
+
+.fade-element.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Mobile reset */
+@media (max-width: 736px) {
+    #dynamic-content .container.style2.columns > .wrapper > .inner > * {
+        width: 100% !important;
+        margin-left: 0 !important;
+        margin-top: 0 !important;
+        margin-bottom: 0 !important;
+        padding-top: 1.5rem !important;
+        padding-bottom: 1.5rem !important;
+    }
+}

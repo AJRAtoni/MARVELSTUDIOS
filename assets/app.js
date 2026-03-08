@@ -14,7 +14,43 @@ const DOM = {
 };
 
 /**
- * Fetch records from Airtable
+ * Escape HTML special characters to prevent XSS
+ */
+function escapeHTML(str) {
+    if (!str) return '';
+    const div = document.createElement('div');
+    div.appendChild(document.createTextNode(str));
+    return div.innerHTML;
+}
+
+const CACHE_KEY = 'marvel_airtable_cache';
+const CACHE_TTL = 60 * 60 * 1000; // 1 hour
+
+function getCachedData() {
+    try {
+        const cached = localStorage.getItem(CACHE_KEY);
+        if (!cached) return null;
+        const { data, timestamp } = JSON.parse(cached);
+        if (Date.now() - timestamp > CACHE_TTL) {
+            localStorage.removeItem(CACHE_KEY);
+            return null;
+        }
+        return data;
+    } catch (e) {
+        return null;
+    }
+}
+
+function setCachedData(data) {
+    try {
+        localStorage.setItem(CACHE_KEY, JSON.stringify({ data, timestamp: Date.now() }));
+    } catch (e) {
+        // localStorage full or unavailable
+    }
+}
+
+/**
+ * Fetch records from Airtable (with localStorage cache)
  */
 async function fetchMovies() {
     if (CONFIG.AIRTABLE.TOKEN.includes('patXXXX')) {
@@ -22,10 +58,18 @@ async function fetchMovies() {
         return getMockData();
     }
 
+    const cached = getCachedData();
+    if (cached) {
+        // Filter out past events from cache (date may have changed since caching)
+        const today = new Date().toISOString().split('T')[0];
+        const filtered = cached.filter(r => !r.fields.FechaOrden || r.fields.FechaOrden >= today);
+        if (filtered.length > 0) return filtered;
+        localStorage.removeItem(CACHE_KEY);
+    }
+
     try {
-        // Construct URL with sorting by Date AND filtering by Franchise
-        // Formula: {Franquicia} = 'Marvel'
-        const filterFormula = `({${CONFIG.AIRTABLE.FILTER_FIELD}} = '${CONFIG.AIRTABLE.FILTER_VALUE}')`;
+        // Filter by franchise AND only future events
+        const filterFormula = `AND({${CONFIG.AIRTABLE.FILTER_FIELD}} = '${CONFIG.AIRTABLE.FILTER_VALUE}', {FechaOrden} >= TODAY())`;
         const encodedFilter = encodeURIComponent(filterFormula);
 
         const url = `https://api.airtable.com/v0/${CONFIG.AIRTABLE.BASE_ID}/${CONFIG.AIRTABLE.TABLE_NAME}?sort[0][field]=FechaOrden&sort[0][direction]=asc&filterByFormula=${encodedFilter}`;
@@ -52,7 +96,7 @@ async function fetchMovies() {
         const data = await response.json();
         const records = data.records;
 
-        console.log('Datos de Airtable recibidos:', records);
+        // Data received from Airtable
 
         if (records.length > 0) {
             const firstFields = records[0].fields;
@@ -68,11 +112,12 @@ async function fetchMovies() {
             }
         }
 
+        setCachedData(records);
         return records;
 
     } catch (error) {
         console.error('Failed to fetch from Airtable:', error);
-        DOM.container.innerHTML = `<p style="text-align:center; color: red;">Error cargando contenido: ${error.message}</p>`;
+        DOM.container.innerHTML = `<p style="text-align:center; color: red;">Error cargando contenido. Inténtalo de nuevo más tarde.</p>`;
         return [];
     }
 }
@@ -106,12 +151,12 @@ function createCardMarkup(record, index) {
     const isEven = index % 2 === 0; // 0, 2, 4... -> Image First (Desktop)
 
     // Formatting Data
-    const title = f.Titulo || 'Sin Título';
-    const type = f.Tipo || 'DESCONOCIDO';
+    const title = escapeHTML(f.Titulo) || 'Sin Título';
+    const type = escapeHTML(f.Tipo) || 'DESCONOCIDO';
     // Use explicit text if available, otherwise format the date object
-    const date = f.FechaEstrenoTexto || formatDate(f.FechaOrden);
-    const link = f.IMDbURL || '#';
-    const imageUrl = f.Imagen && f.Imagen.length > 0 ? f.Imagen[0].url : 'assets/images/image05.jpg'; // Fallback image
+    const date = escapeHTML(f.FechaEstrenoTexto) || formatDate(f.FechaOrden);
+    const link = escapeHTML(f.IMDbURL) || '#';
+    const imageUrl = f.Imagen && f.Imagen.length > 0 ? escapeHTML(f.Imagen[0].url) : 'assets/images/image05.jpg';
 
     // SVG Icons (Hardcoded from original)
     const iconChevronRight = `<svg aria-labelledby="button-icon-${index}-title"><title id="button-icon-${index}-title">Chevron Right (Light)</title><use xlink:href="assets/icons.svg#arrow-right-alt-light"></use></svg>`;
@@ -120,7 +165,7 @@ function createCardMarkup(record, index) {
     const imageDiv = `
         <div>
             <div class="style2 image" data-position="center">
-                <a href="${link}" class="frame" target="_blank" rel="noopener noreferrer"><img src="${imageUrl}" alt="${title}" /></a>
+                <a href="${link}" class="frame" target="_blank" rel="noopener noreferrer"><img src="${imageUrl}" alt="${title}" loading="lazy" /></a>
             </div>
         </div>
     `;
@@ -211,9 +256,6 @@ async function init() {
     // Initialize Animations
     initAnimations();
 
-    // Inject Custom Styles for Layout
-    injectStyles();
-
     // Trigger Carrd's existing reorder logic if available
     // We need to re-run the reorder IIFE? It's an IIFE in main.js, so it runs on load.
     // Note: Since we inject dynamic content AFTER load, the original reorder script won't see our new elements.
@@ -272,33 +314,6 @@ function handleDynamicReorder() {
     applyOrder(); // Initial call
 }
 
-/**
- * Inject custom styles to fix layout issues
- */
-function injectStyles() {
-    const style = document.createElement('style');
-    style.textContent = `
-        /* Force 2-column layout on Desktop */
-        #dynamic-content .container.style2.columns > .wrapper > .inner > div {
-            width: calc(50% + (var(--gutters) / 2));
-        }
-
-
-        
-        /* Reset for Mobile */
-        @media (max-width: 736px) {
-            #dynamic-content .container.style2.columns > .wrapper > .inner > * {
-                width: 100% !important;
-                margin-left: 0 !important;
-                margin-top: 0 !important;
-                margin-bottom: 0 !important;
-                padding-top: 1.5rem !important;
-                padding-bottom: 1.5rem !important;
-            }
-        }
-    `;
-    document.head.appendChild(style);
-}
 
 // Start
 document.addEventListener('DOMContentLoaded', init);
