@@ -19,7 +19,6 @@ Calendario actualizado con los próximos estrenos de películas y series de Marv
 - HTML, CSS y JavaScript vanilla (sin frameworks ni build tools)
 - Airtable como backend de datos
 - GitHub Pages para el hosting
-- Carrd como base del framework CSS/JS (`main.css` / `main.js`)
 
 ## Desarrollo local
 
